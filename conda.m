@@ -42,16 +42,21 @@ methods (Static)
 	end
 
 
-	function addBaseCondaPath()
+	function addBaseCondaPath(conda_path)
 
 		try
-			condalab_base_path = getpref('condalab','base_path');
+            if nargin<1              
+                condalab_base_path = getpref('condalab','base_path');
+            else
+                setpref('condalab','base_path',conda_path)
+                condalab_base_path = getpref('condalab','base_path');
+            end
 		catch
 			conda.init()
 			condalab_base_path = getpref('condalab','base_path');
-		end
+        end
 
-
+        
 
 		[e,o]=system('which conda');
 		if e == 0
@@ -156,13 +161,55 @@ methods (Static)
 
 		% prepend the base path to this, because apparently
 		% conda decides to change everything every 2 months
-		p = [getpref('condalab','base_path') pathsep p];
+        
+        
+        % [Diogo Duarte]
+        % I commented the line bellow because under Mac it causes the
+        % python executable to be the one under conda's base path, instead
+        % of being the one under your virtual environment path!!
+% 		p = [getpref('condalab','base_path') pathsep p];
 
 		setenv('PATH', p);
 
 	end % setenv
 
-
+    function deactivate()
+        % removes conda from path
+        [env_names, env_paths, active_path] = conda.getenv();
+        p = getenv('PATH');
+        path_folders = strsplit(p, ':');
+        condalab_base_path = getpref('condalab','base_path');
+        candidates = strfind(path_folders, env_paths{active_path});
+        
+        
+        binActPth = fullfile(env_paths{active_path}, 'bin');        
+        if strcmpi(condalab_base_path, binActPth)
+            % this is the condalab folder, no need to take it out
+            disp('No envs were deactivated');
+            return
+        end
+        
+        idx_to_keep = [];
+        noEnvsDeact = 1;
+        for ii =1:numel(candidates)
+            if ~isempty(candidates{ii}) && ...
+                    strcmpi(path_folders(ii), binActPth)
+                path_folders{ii} = [];
+                noEnvsDeact = 0;
+            else
+                idx_to_keep = [idx_to_keep ii];
+            end
+        end
+        path_folders = path_folders(idx_to_keep);
+        p = strjoin(path_folders, ':');
+        setenv('PATH', p);
+        
+        if noEnvsDeact
+            disp('No envs were deactivated');
+        end
+        
+        setenv('PATH', p);
+    end
 
 
 end
