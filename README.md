@@ -2,16 +2,27 @@
 
 Handy MATLAB utility to switch between conda environments **from within MATLAB**
 
-This is a fork of the original repo (https://github.com/sg-s/condalab.git) which allows manual setting of conda base directory. Depending on how you install conda / add to the .bashrc, it may not be detected using the original method. In theory tthis should allow you to use different versions of conda by setting a different base folder
+This is a fork of the original repo (https://github.com/sg-s/condalab.git).
+
+Changes include:
+  - adding the conda path can be done without prompt (see installation)
+  - setting the environment (equivalent of conda activate) now makes the python executable to be the one in the active environment (setting 'PATH' var in matlab), instead of being the conda python (not sure if this was a bug or feature in the upstream repo)
+  - new method deactivate() removes the environment path from 'PATH' (equivalent of conda deactivate)
+
+
+In theory this should allow you to switch between conda versions setting a different base folder (conda.addBaseCondaPath(conda_path)). Beware that this is not recommended and defeats the purpose of anaconda
 
 
 ## Installation
 
-1. Grab this repo. Chuck it somewhere on your path.
-2. Determine where your base `conda` installation by opening a terminal and typing `which conda`. Make a note of that path.
-3. Type `conda.init` in your MATLAB terminal. It should prompt you for the path you got in step 2.
+Grab this repo. Chuck it somewhere on your path. 
+You can paste the code below into your startup.m file (adjust conda_path accordingly)
 
-
+```matlab
+conda_path = '/anaconda3/bin'; % your conda install path here. avoid slashes
+% or backslashes at the end
+conda.addBaseCondaPath(conda_path)
+```
 ## Usage
 
 #### Step 1
@@ -30,13 +41,6 @@ root            /Users/sg-s/anaconda3
 
 and the `*` indicates the currently active environment
 
-__If this doesn't work__, it may be because in some systems your conda path is not added to the system path (e.g., a conda path added to the .bashrc under Linux / Mac may not be added by Matlab). If this doesn't work, add it and repeat __step 1__:
-
-```matlab
-conda_path = '/anaconda3/bin'; % your conda install path here. avoid slashes
-% or backslashes at the end
-conda.addBaseCondaPath(conda_path)
-```
 
 #### Step 2
 To switch between environments (i.e., `source activate env`)
